@@ -3,12 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { EventStore, Model, SourcingEvent } from './index.js';
 import { lazyInstance, registerModel } from './lazyInstance.js';
 
-vi.mock('async-await-queue', () => ({
-  Queue: class Queue {
-    run = vi.fn();
-  },
-}));
-
 // Define a test model
 @registerModel
 class Test extends Model {

@@ -10,7 +10,7 @@
     "vitest": "^0.34.6"
   },
   "dependencies": {
-    "async-await-queue": "^1.2.1",
+    "async-await-queue": "^2.1.4",
     "cuid": "^2.1.8"
   },
   "scripts": {
