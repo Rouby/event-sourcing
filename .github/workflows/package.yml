@@ -37,7 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: rymndhng/release-on-push-action@master
+      - id: release
+        uses: rymndhng/release-on-push-action@v0.28.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -45,3 +46,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: dist
+      - run: npm version ${{ steps.release.outputs.version }}
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
