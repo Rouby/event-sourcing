@@ -1,0 +1,3 @@
+# @rouby/event-sourcing
+
+tbd
