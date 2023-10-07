@@ -1,4 +1,5 @@
 examples
+.vscode
 .github
 bun.lockb
 tsconfig.json
