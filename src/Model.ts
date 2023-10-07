@@ -16,6 +16,7 @@ export function applyEvent<
   accessor: TEvent extends { payload: infer TPayload }
     ? keyof TPayload | ((payload: TPayload) => any)
     : never,
+  condition?: (event: TEvent) => boolean,
 ) {
   return (target: any, context?: ClassFieldDecoratorContext) => {
     if (!(target instanceof Model)) {
@@ -26,7 +27,10 @@ export function applyEvent<
     const originalApply = target.applyEvent;
     // @ts-expect-error
     target.applyEvent = function (event) {
-      if (event.type === eventType) {
+      if (
+        event.type === eventType &&
+        (!condition || condition(event as TEvent))
+      ) {
         const payload = event.payload;
 
         if (typeof accessor === 'function') {
