@@ -15,6 +15,6 @@
   },
   "scripts": {
     "test": "vitest",
-    "build": "bun tsc --outdir dist --noEmit false --declaration"
+    "build": "bun tsc -p tsconfig.build.json --outdir dist --noEmit false --declaration"
   }
 }
