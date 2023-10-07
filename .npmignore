@@ -2,3 +2,4 @@ examples
 .github
 bun.lockb
 tsconfig.json
+src
