@@ -29,7 +29,7 @@ export function applyEvent<
     target.applyEvent = function (event) {
       if (
         event.type === eventType &&
-        (!condition || condition(event as TEvent))
+        (!condition || condition.call(this, event as TEvent))
       ) {
         const payload = event.payload;
 
