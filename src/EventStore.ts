@@ -11,7 +11,9 @@ let signFn: (event: SourcingEvent) => Promise<SourcingEvent & Signed>;
 let verifyFn: (event: SourcingEvent & Signed) => Promise<boolean>;
 
 export async function getEvents(model: Model) {
-  const events = await eventFn(model.lastEvent);
+  if (!eventFn) logger.warn('EventStore not setup');
+
+  const events = eventFn ? await eventFn(model.lastEvent) : [];
   const verifiedEvents = await Promise.all(
     events.map(async (event) =>
       event.signature
@@ -28,6 +30,8 @@ export async function storeEvent<TEvent extends SourcingEvent>(
   event: TEvent,
   sign?: boolean,
 ) {
+  if (!storeFn) logger.error('EventStore not setup');
+
   return storeFn(sign ? await signFn(event) : event);
 }
 
