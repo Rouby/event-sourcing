@@ -6,3 +6,5 @@ export * from './getInstance.js';
 export * from './lazyInstance.js';
 export { publishEvent } from './publishEvent.js';
 export * from './register.js';
+export * from './subscribeInstance.js';
+export { subscribeToEvents } from './subscriptions.js';

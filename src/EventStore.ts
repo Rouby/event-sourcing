@@ -1,5 +1,6 @@
 import { Model } from './Model.js';
 import { SourcingEvent } from './register.js';
+import { triggerSubscriptions } from './subscriptions.js';
 
 type Signed = { issuer: string; signature: string };
 
@@ -32,7 +33,19 @@ export async function storeEvent<TEvent extends SourcingEvent>(
 ) {
   if (!storeFn) logger.error('EventStore not setup');
 
-  return storeFn(sign ? await signFn(event) : event);
+  const storedEvent = await storeFn(sign ? await signFn(event) : event);
+
+  const verifiedEvent = storedEvent.signature
+    ? (await verifyFn(storedEvent as any))
+      ? { ...event, verified: true }
+      : null
+    : { ...event, verified: false };
+
+  if (verifiedEvent) {
+    triggerSubscriptions(storedEvent);
+  }
+
+  return storedEvent;
 }
 
 export let logger = {
