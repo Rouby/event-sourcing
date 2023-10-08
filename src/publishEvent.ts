@@ -9,18 +9,23 @@ export const eventQueue = new Queue();
 export async function publishEvent<TEvent extends RegisteredEvent>({
   event,
   trigger,
+  sign,
 }: {
   event: TEvent;
   trigger?: { id: string; correlationId: string };
+  sign?: boolean;
 }) {
   const eventId = cuid();
-  const sourcingEvent = await EventStore.storeEvent({
-    id: eventId,
-    causationId: trigger?.id ?? eventId,
-    correlationId: trigger?.correlationId ?? eventId,
-    createdAt: new Date(),
-    ...event,
-  });
+  const sourcingEvent = await EventStore.storeEvent(
+    {
+      id: eventId,
+      causationId: trigger?.id ?? eventId,
+      correlationId: trigger?.correlationId ?? eventId,
+      createdAt: new Date(),
+      ...event,
+    },
+    sign,
+  );
 
   logger.info('Event %s published', sourcingEvent.type);
 
