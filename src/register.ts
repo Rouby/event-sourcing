@@ -15,6 +15,7 @@ export type SourcingEvent = RegisteredEvent & {
   causationId: string;
   correlationId: string;
   createdAt: Date;
+  verified?: boolean;
 };
 
 export type ModelKind = keyof RegisterModels;

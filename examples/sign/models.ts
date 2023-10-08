@@ -4,7 +4,7 @@ import { Model, SourcingEvent, applyEvent, registerModel } from '../../src';
 export class Entity extends Model {
   kind = 'Entity' as const;
 
-  @applyEvent('createEntity', 'name')
+  @applyEvent('createEntity', 'name', (e) => !!e.verified)
   name = '';
 
   constructor(public id: string) {

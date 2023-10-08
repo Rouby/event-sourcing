@@ -16,9 +16,9 @@ export async function getEvents(model: Model) {
     events.map(async (event) =>
       event.signature
         ? (await verifyFn(event as any))
-          ? [event]
+          ? [{ ...event, verified: true }]
           : []
-        : [event],
+        : [{ ...event, verified: false }],
     ),
   ).then((events) => events.flat());
   return verifiedEvents;
