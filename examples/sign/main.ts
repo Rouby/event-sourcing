@@ -10,10 +10,10 @@ import { Entity } from './models';
 
 EventStore.setupStore(MemoryStore);
 EventStore.setupSigning({
-  signEvent(event) {
+  async sign(event) {
     return { ...event, issuer: 'issuer', signature: 'signature' };
   },
-  verifyEvent(event) {
+  async verify(event) {
     return event.issuer === 'issuer' && event.signature === 'signature';
   },
 });

@@ -7,21 +7,28 @@ let eventFn: (since?: Date) => Promise<(SourcingEvent & Partial<Signed>)[]>;
 let storeFn: (
   event: SourcingEvent & Partial<Signed>,
 ) => Promise<SourcingEvent & Partial<Signed>>;
-let signFn: (event: SourcingEvent) => SourcingEvent & Signed;
-let verifyFn: (event: SourcingEvent & Signed) => boolean;
+let signFn: (event: SourcingEvent) => Promise<SourcingEvent & Signed>;
+let verifyFn: (event: SourcingEvent & Signed) => Promise<boolean>;
 
 export async function getEvents(model: Model) {
   const events = await eventFn(model.lastEvent);
-  return events.filter((event) =>
-    event.signature ? verifyFn(event as any) : true,
-  );
+  const verifiedEvents = await Promise.all(
+    events.map(async (event) =>
+      event.signature
+        ? (await verifyFn(event as any))
+          ? [event]
+          : []
+        : [event],
+    ),
+  ).then((events) => events.flat());
+  return verifiedEvents;
 }
 
 export async function storeEvent<TEvent extends SourcingEvent>(
   event: TEvent,
   sign?: boolean,
 ) {
-  return storeFn(sign ? signFn(event) : event);
+  return storeFn(sign ? await signFn(event) : event);
 }
 
 export let logger = {
@@ -43,9 +50,9 @@ export function setupStore(config: {
 }
 
 export function setupSigning(config: {
-  signEvent: (event: SourcingEvent) => SourcingEvent & Signed;
-  verifyEvent: (event: SourcingEvent & Signed) => boolean;
+  sign: (event: SourcingEvent) => Promise<SourcingEvent & Signed>;
+  verify: (event: SourcingEvent & Signed) => Promise<boolean>;
 }) {
-  signFn = config.signEvent;
-  verifyFn = config.verifyEvent;
+  signFn = config.sign;
+  verifyFn = config.verify;
 }
