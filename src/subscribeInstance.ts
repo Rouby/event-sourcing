@@ -17,9 +17,9 @@ export function subscribeInstance<TIds extends string[], TModel extends Model>(
 
     const prev = JSON.stringify(instance);
     // @ts-expect-error
-    instance.applyEvent(event);
+    const handled = instance.applyEvent(event);
 
-    if (prev !== JSON.stringify(instance)) {
+    if (handled || prev !== JSON.stringify(instance)) {
       next(instance);
     }
   });

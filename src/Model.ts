@@ -5,7 +5,7 @@ export abstract class Model {
 
   lastEvent?: Date;
 
-  protected applyEvent(event: SourcingEvent) {}
+  protected applyEvent(event: SourcingEvent): boolean | void {}
 }
 
 export function applyEvent<
@@ -27,6 +27,7 @@ export function applyEvent<
     const originalApply = target.applyEvent;
     // @ts-expect-error
     target.applyEvent = function (event) {
+      let handled = false;
       if (
         event.type === eventType &&
         (!condition || condition.call(this, event as TEvent & SourcingEvent))
@@ -40,9 +41,10 @@ export function applyEvent<
           // @ts-expect-error
           this[context] = payload[accessor];
         }
+        handled = true;
       }
 
-      originalApply.call(this, event);
+      return originalApply.call(this, event) || handled;
     };
   };
 }
