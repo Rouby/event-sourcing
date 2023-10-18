@@ -13,6 +13,15 @@ export class EventSourcing {
     for (const plugin of this.plugins) {
       if (plugin.initialize) {
         plugin.initialize({
+          rehydrate: (events) => {
+            this.events.splice(
+              0,
+              this.events.length,
+              ...[...this.events, ...events]
+                .filter((event) => !this.events.find((e) => e.id === event.id))
+                .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+            );
+          },
           addEvent: async (event) => {
             let eventOrAbort: typeof event | null = event;
             for (const plugin of this.plugins) {
@@ -106,6 +115,17 @@ export class EventSourcing {
       }
     };
 
+    this.subscribers.push(onEvent);
+
+    return () => {
+      const idx = this.subscribers.indexOf(onEvent);
+      if (idx !== -1) {
+        this.subscribers.splice(idx, 1);
+      }
+    };
+  }
+
+  subscribe(onEvent: (event: SourcingEvent) => void) {
     this.subscribers.push(onEvent);
 
     return () => {
