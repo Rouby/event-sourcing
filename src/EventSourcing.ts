@@ -4,7 +4,7 @@ import { Plugin } from './plugins/index.js';
 import { RegisteredEvent, SourcingEvent } from './types.js';
 
 export class EventSourcing {
-  private readonly events: SourcingEvent[] = [];
+  public readonly events: SourcingEvent[] = [];
   private readonly subscribers: ((event: SourcingEvent) => void)[] = [];
   private readonly plugins: Plugin<SourcingEvent>[];
 
