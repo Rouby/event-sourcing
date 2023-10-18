@@ -26,6 +26,9 @@ export class EventSourcing {
                 plugin.afterRehydration(this.events);
               }
             }
+            this.events.forEach((event) => {
+              this.subscribers.forEach((subscriber) => subscriber(event));
+            });
           },
           addEvent: async (event) => {
             let eventOrAbort: typeof event | null = event;
