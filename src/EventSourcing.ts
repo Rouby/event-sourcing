@@ -66,9 +66,6 @@ export class EventSourcing {
       ...event,
     };
 
-    this.events.push(sourcingEvent);
-    this.subscribers.forEach((subscriber) => subscriber(sourcingEvent));
-
     for (const plugin of this.plugins) {
       if (plugin.prepareEventBeforePublishing) {
         sourcingEvent = await plugin.prepareEventBeforePublishing(
@@ -76,6 +73,10 @@ export class EventSourcing {
         );
       }
     }
+
+    this.events.push(sourcingEvent);
+    this.subscribers.forEach((subscriber) => subscriber(sourcingEvent));
+
     for (const plugin of this.plugins) {
       if (plugin.publishEvent) {
         await plugin.publishEvent(sourcingEvent);
