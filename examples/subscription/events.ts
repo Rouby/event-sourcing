@@ -15,12 +15,12 @@ declare module '../../src' {
   }
 }
 
-export function updateEntity() {
+export function updateEntity(name: string) {
   return {
     type: 'updateEntity' as const,
     version: 1,
     payload: {
-      name: 'Updated Entity',
+      name,
     },
   };
 }

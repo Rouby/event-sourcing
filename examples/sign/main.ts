@@ -1,25 +1,56 @@
-import {
-  EventStore,
-  MemoryStore,
-  getInstance,
-  lazyInstance,
-  publishEvent,
-} from '../../src';
+import { EventSourcing, SourcingEvent } from '../../src';
 import { createEntity, updateEntity } from './events';
 import { Entity } from './models';
 
-EventStore.setupStore(MemoryStore);
-EventStore.setupSigning({
-  async sign(event) {
-    return { ...event, issuer: 'issuer', signature: 'signature' };
-  },
-  async verify(event) {
-    return event.issuer === 'issuer' && event.signature === 'signature';
-  },
+const source = new EventSourcing({
+  plugins: [
+    {
+      async prepareEventBeforePublishing(
+        event: SourcingEvent & { issuer: string; signature: string },
+      ) {
+        return { ...event, issuer: 'issuer', signature: 'signature' };
+      },
+      async beforeAddingEvent(
+        event: SourcingEvent & { issuer?: string; signature?: string },
+      ) {
+        if (event.issuer !== 'issuer' || event.signature !== 'signature') {
+          return null;
+        }
+
+        return event;
+      },
+    },
+    {
+      initialize({ addEvent }) {
+        setTimeout(() => {
+          addEvent({
+            id: '',
+            causationId: '',
+            correlationId: '',
+            createdAt: new Date(),
+            ...updateEntity('Updated signed'),
+            issuer: 'issuer',
+            signature: 'signature',
+          } as SourcingEvent);
+        }, 100);
+        setTimeout(() => {
+          addEvent({
+            id: '',
+            causationId: '',
+            correlationId: '',
+            createdAt: new Date(),
+            ...updateEntity('Updated not signed'),
+            issuer: 'failure',
+            signature: 'signature',
+          } as SourcingEvent);
+        }, 200);
+      },
+    },
+  ],
 });
 
-await publishEvent({ event: createEntity(), sign: true });
-await publishEvent({ event: updateEntity() });
+await source.publishEvent({ event: createEntity() });
 
-console.log('instance', await getInstance(Entity, '1').then((e) => e.name));
-console.log('lazy', await lazyInstance('Entity', '1').name);
+await new Promise((resolve) => setTimeout(resolve, 300));
+
+console.log('instance', source.getInstance(Entity, '1').name); // Updated

@@ -1,27 +1,30 @@
-import {
-  EventStore,
-  MemoryStore,
-  getInstance,
-  lazyInstance,
-  publishEvent,
-  subscribeInstance,
-} from '../../src';
+import { EventSourcing } from '../../src';
 import { createEntity, updateEntity } from './events';
 import { Entity } from './models';
 
-EventStore.setupStore(MemoryStore);
+const source = new EventSourcing({
+  plugins: [
+    {
+      initialize({ addEvent }) {
+        setTimeout(() => {
+          addEvent({
+            id: '',
+            causationId: '',
+            correlationId: '',
+            createdAt: new Date(),
+            ...updateEntity('Updated at timeout'),
+          });
+        }, 1000);
+      },
+    },
+  ],
+});
 
-await publishEvent({ event: createEntity() });
+await source.publishEvent({ event: createEntity() });
 
-subscribeInstance(
-  (entity) => {
-    console.log('instance-update-received', entity.name);
-  },
-  Entity,
-  '1',
-);
+const instance = source.getInstance(Entity, '1');
+source.subscribeInstance(instance, () => {
+  console.log('instance-update-received', instance.name);
+});
 
-await publishEvent({ event: updateEntity() });
-
-console.log('instance', await getInstance(Entity, '1').then((e) => e.name));
-console.log('lazy', await lazyInstance('Entity', '1').name);
+await source.publishEvent({ event: updateEntity('Updated') });

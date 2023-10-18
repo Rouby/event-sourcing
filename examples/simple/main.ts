@@ -1,17 +1,10 @@
-import {
-  EventStore,
-  MemoryStore,
-  getInstance,
-  lazyInstance,
-  publishEvent,
-} from '../../src';
+import { EventSourcing } from '../../src';
 import { createEntity, updateEntity } from './events';
 import { Entity } from './models';
 
-EventStore.setupStore(MemoryStore);
+const source = new EventSourcing();
 
-await publishEvent({ event: createEntity() });
-await publishEvent({ event: updateEntity() });
+await source.publishEvent({ event: createEntity() });
+await source.publishEvent({ event: updateEntity('Updated') });
 
-console.log('instance', await getInstance(Entity, '1').then((e) => e.name));
-console.log('lazy', await lazyInstance('Entity', '1').name);
+console.log('instance', source.getInstance(Entity, '1').name); // Updated

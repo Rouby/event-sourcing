@@ -1,6 +1,5 @@
-import { Model, SourcingEvent, applyEvent, registerModel } from '../../src';
+import { Model, applyEvent } from '../../src';
 
-@registerModel
 export class Entity extends Model {
   kind = 'Entity' as const;
 
@@ -11,8 +10,6 @@ export class Entity extends Model {
   constructor(public id: string) {
     super();
   }
-
-  protected applyEvent(event: SourcingEvent): void {}
 }
 
 declare module '../../src' {

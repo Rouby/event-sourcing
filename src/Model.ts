@@ -1,11 +1,12 @@
-import { RegisterEvents, SourcingEvent } from './index.js';
+import { RegisterEvents, SourcingEvent } from './types.js';
 
 export abstract class Model {
   abstract get kind(): string;
 
   lastEvent?: Date;
 
-  protected applyEvent(event: SourcingEvent): boolean | void {}
+  /** @internal */
+  applyEvent(event: SourcingEvent): boolean | void {}
 }
 
 export function applyEvent<
@@ -23,9 +24,7 @@ export function applyEvent<
       throw new Error('applyEvent decorator can only be used on Model classes');
     }
 
-    // @ts-expect-error
     const originalApply = target.applyEvent;
-    // @ts-expect-error
     target.applyEvent = function (event) {
       let handled = false;
       if (

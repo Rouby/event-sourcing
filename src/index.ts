@@ -1,10 +1,4 @@
-export { registerEffect } from './EffectStore.js';
-export * as EventStore from './EventStore.js';
-export * as MemoryStore from './MemoryStore.js';
+export { EventSourcing } from './EventSourcing.js';
 export * from './Model.js';
-export * from './getInstance.js';
-export * from './lazyInstance.js';
-export { publishEvent } from './publishEvent.js';
-export * from './register.js';
-export * from './subscribeInstance.js';
-export { subscribeToEvents, triggerSubscriptions } from './subscriptions.js';
+export * from './plugins/index.js';
+export * from './types.js';
