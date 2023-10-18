@@ -13,4 +13,6 @@ export interface Plugin<TEvent extends SourcingEvent> {
   beforeAddingEvent?(event: TEvent): Promise<TEvent | null>;
 
   afterAddingEvent?(event: TEvent): TEvent;
+
+  afterRehydration?(events: SourcingEvent[]): void;
 }

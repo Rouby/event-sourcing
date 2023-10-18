@@ -21,6 +21,11 @@ export class EventSourcing {
                 .filter((event) => !this.events.find((e) => e.id === event.id))
                 .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
             );
+            for (const plugin of this.plugins) {
+              if (plugin.afterRehydration) {
+                plugin.afterRehydration(this.events);
+              }
+            }
           },
           addEvent: async (event) => {
             let eventOrAbort: typeof event | null = event;
