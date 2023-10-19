@@ -114,13 +114,13 @@ export class EventSourcing {
 
   subscribeInstance<TModel extends Model>(
     instance: TModel,
-    onUpdate: () => void,
+    onUpdate: (event: SourcingEvent) => void,
   ) {
     const onEvent = (event: SourcingEvent) => {
       const previous = JSON.stringify(instance);
       const applied = instance.applyEvent(event);
       if (applied || JSON.stringify(instance) !== previous) {
-        onUpdate();
+        onUpdate(event);
       }
     };
 
