@@ -183,7 +183,7 @@ export class EventSourcing {
     instance.eventSourcing = this;
 
     this.logger.trace(
-      { lastEvent: parent.lastEvent },
+      { lastEvent: parent.lastEvent, model },
       'getInstanceInTimeFromName',
     );
 
@@ -198,7 +198,7 @@ export class EventSourcing {
         }
 
         this.logger.trace(
-          { lastEvent: parent.lastEvent },
+          { lastEvent: parent.lastEvent, model, prop },
           'getInstanceInTimeFromName - get',
         );
 
