@@ -108,8 +108,37 @@ export class EventSourcing {
         )
       : -1;
 
-    this.events.slice(lastEventIdx + 1).forEach((event) => {
+    const eventsToApply = this.events.slice(lastEventIdx + 1);
+
+    eventsToApply.forEach((event) => {
       instance.applyEvent(event);
+      instance.lastEvent = event.createdAt;
+    });
+
+    return instance;
+  }
+
+  getInstanceInTime<TModel extends Model, TIds extends any[]>(
+    tillTime: Date,
+    model: new (...ids: TIds) => TModel,
+    ...ids: TIds
+  ) {
+    const instance = new model(...ids);
+
+    const lastEventIdx = instance.lastEvent
+      ? this.events.findIndex(
+          (event) =>
+            event.createdAt.getTime() === instance.lastEvent?.getTime(),
+        )
+      : -1;
+
+    const eventsToApply = this.events
+      .slice(lastEventIdx + 1)
+      .filter((event) => event.createdAt.getTime() <= tillTime.getTime());
+
+    eventsToApply.forEach((event) => {
+      instance.applyEvent(event);
+      instance.lastEvent = event.createdAt;
     });
 
     return instance;
@@ -119,22 +148,14 @@ export class EventSourcing {
     instance: TModel,
     onUpdate: (event: SourcingEvent) => void,
   ) {
-    const onEvent = (event: SourcingEvent) => {
+    return this.subscribe((event: SourcingEvent) => {
       const previous = JSON.stringify(instance);
       const applied = instance.applyEvent(event);
+      instance.lastEvent = event.createdAt;
       if (applied || JSON.stringify(instance) !== previous) {
         onUpdate(event);
       }
-    };
-
-    this.subscribers.push(onEvent);
-
-    return () => {
-      const idx = this.subscribers.indexOf(onEvent);
-      if (idx !== -1) {
-        this.subscribers.splice(idx, 1);
-      }
-    };
+    });
   }
 
   subscribe(onEvent: (event: SourcingEvent) => void) {
