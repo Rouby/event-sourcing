@@ -213,10 +213,9 @@ export class EventSourcing {
     onUpdate: (event: SourcingEvent) => void,
   ) {
     return this.subscribe((event: SourcingEvent) => {
-      const previous = JSON.stringify(instance);
       instance.lastEvent = event.createdAt;
       const applied = instance.applyEvent(event);
-      if (applied || JSON.stringify(instance) !== previous) {
+      if (applied !== false) {
         onUpdate(event);
       }
     });

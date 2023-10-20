@@ -8,7 +8,9 @@ export abstract class Model {
   eventSourcing!: EventSourcing;
 
   /** @internal */
-  applyEvent(event: SourcingEvent): boolean | void {}
+  applyEvent(event: SourcingEvent): boolean | void {
+    return false;
+  }
 
   protected getInstance<
     TModel extends keyof RegisteredModels,
