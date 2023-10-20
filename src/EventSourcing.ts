@@ -222,10 +222,8 @@ export class EventSourcing {
 
     return this.subscribe((event: SourcingEvent) => {
       instance.lastEvent = event.createdAt;
-      const applied = instance.applyEvent(event);
-      if (applied !== false) {
-        onUpdate(event);
-      }
+      instance.applyEvent(event);
+      onUpdate(event);
     });
   }
 

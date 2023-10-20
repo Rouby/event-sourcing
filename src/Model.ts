@@ -8,9 +8,7 @@ export abstract class Model {
   eventSourcing!: EventSourcing;
 
   /** @internal */
-  applyEvent(event: SourcingEvent): boolean | void {
-    return false;
-  }
+  applyEvent(event: SourcingEvent): void {}
 
   protected getInstance<
     TModel extends keyof RegisteredModels,
@@ -66,7 +64,7 @@ export function applyEvent<
         handled = true;
       }
 
-      return originalApply.call(this, event) || handled;
+      originalApply.call(this, event);
     };
   };
 }
