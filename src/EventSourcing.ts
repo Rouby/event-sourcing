@@ -41,7 +41,10 @@ export class EventSourcing {
               }
             }
 
-            if (eventOrAbort) {
+            if (
+              eventOrAbort &&
+              !this.events.some((evt) => evt.id === eventOrAbort?.id)
+            ) {
               const event = eventOrAbort;
               this.events.push(event);
               this.subscribers.forEach((subscriber) => subscriber(event));
