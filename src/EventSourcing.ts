@@ -122,8 +122,8 @@ export class EventSourcing {
     const eventsToApply = this.events.slice(lastEventIdx + 1);
 
     eventsToApply.forEach((event) => {
-      instance.applyEvent(event);
       instance.lastEvent = event.createdAt;
+      instance.applyEvent(event);
     });
 
     return instance;
@@ -149,8 +149,8 @@ export class EventSourcing {
       .filter((event) => event.createdAt.getTime() <= tillTime.getTime());
 
     eventsToApply.forEach((event) => {
-      instance.applyEvent(event);
       instance.lastEvent = event.createdAt;
+      instance.applyEvent(event);
     });
 
     return instance;
@@ -186,8 +186,8 @@ export class EventSourcing {
         );
 
       eventsToApply.forEach((event) => {
-        instance.applyEvent(event);
         instance.lastEvent = event.createdAt;
+        instance.applyEvent(event);
       });
     };
 
@@ -214,8 +214,8 @@ export class EventSourcing {
   ) {
     return this.subscribe((event: SourcingEvent) => {
       const previous = JSON.stringify(instance);
-      const applied = instance.applyEvent(event);
       instance.lastEvent = event.createdAt;
+      const applied = instance.applyEvent(event);
       if (applied || JSON.stringify(instance) !== previous) {
         onUpdate(event);
       }
