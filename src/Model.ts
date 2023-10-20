@@ -10,7 +10,7 @@ export abstract class Model {
   /** @internal */
   applyEvent(event: SourcingEvent): boolean | void {}
 
-  getInstance<
+  protected getInstance<
     TModel extends keyof RegisteredModels,
     TIds extends RegisteredModels[TModel] extends new (
       ...args: infer TArgs
