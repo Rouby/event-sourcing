@@ -45,6 +45,7 @@ export class EventSourcing {
                 plugin.afterRehydration(this.events);
               }
             }
+            this.logger.trace({}, 'rehydrate');
             this.events.forEach((event) => {
               this.subscribers.forEach((subscriber) => subscriber(event));
             });
@@ -65,6 +66,9 @@ export class EventSourcing {
               !this.events.some((evt) => evt.id === eventOrAbort?.id)
             ) {
               const event = eventOrAbort;
+
+              this.logger.trace({ event }, 'addEvent');
+
               this.events.push(event);
               this.subscribers.forEach((subscriber) => subscriber(event));
 
@@ -103,6 +107,8 @@ export class EventSourcing {
         );
       }
     }
+
+    this.logger.trace({ event: sourcingEvent }, 'publishEvent');
 
     this.events.push(sourcingEvent);
     this.subscribers.forEach((subscriber) => subscriber(sourcingEvent));
@@ -164,7 +170,10 @@ export class EventSourcing {
       instance.applyEvent(event);
     });
 
-    this.logger.trace({ lastEvent: instance.lastEvent }, 'getInstanceInTime');
+    this.logger.trace(
+      { tillTime, lastEvent: instance.lastEvent },
+      'getInstanceInTime',
+    );
 
     return instance;
   }
@@ -182,10 +191,7 @@ export class EventSourcing {
     );
     instance.eventSourcing = this;
 
-    this.logger.trace(
-      { lastEvent: parent.lastEvent, model },
-      'getInstanceInTimeFromName',
-    );
+    this.logger.trace({ model }, 'getInstanceInTimeFromName');
 
     return new Proxy(instance, {
       get: (target, prop) => {
@@ -197,10 +203,7 @@ export class EventSourcing {
           return target[prop as keyof typeof target];
         }
 
-        this.logger.trace(
-          { lastEvent: parent.lastEvent, model, prop },
-          'getInstanceInTimeFromName - get',
-        );
+        this.logger.trace({ model, prop }, 'getInstanceInTimeFromName - get');
 
         return this.getInstanceInTime(
           parent.lastEvent ?? new Date(0),
@@ -215,6 +218,8 @@ export class EventSourcing {
     instance: TModel,
     onUpdate: (event: SourcingEvent) => void,
   ) {
+    this.logger.trace({}, 'subscribeInstance');
+
     return this.subscribe((event: SourcingEvent) => {
       instance.lastEvent = event.createdAt;
       const applied = instance.applyEvent(event);
