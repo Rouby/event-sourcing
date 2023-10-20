@@ -13,13 +13,22 @@ export class EventSourcing {
   private readonly subscribers: ((event: SourcingEvent) => void)[] = [];
   private readonly models: RegisteredModels;
   private readonly plugins: Plugin<SourcingEvent>[];
+  private readonly logger: {
+    trace: (...args: any[]) => void;
+  };
 
   constructor(options: {
     models: RegisteredModels;
     plugins?: Plugin<SourcingEvent>[];
+    logger?: {
+      trace: (...args: any[]) => void;
+    };
   }) {
     this.models = options.models;
     this.plugins = options.plugins ?? [];
+    this.logger = options.logger ?? {
+      trace: () => {},
+    };
     for (const plugin of this.plugins) {
       if (plugin.initialize) {
         plugin.initialize({
@@ -126,6 +135,8 @@ export class EventSourcing {
       instance.applyEvent(event);
     });
 
+    this.logger.trace({ lastEvent: instance.lastEvent }, 'getInstance');
+
     return instance;
   }
 
@@ -153,6 +164,8 @@ export class EventSourcing {
       instance.applyEvent(event);
     });
 
+    this.logger.trace({ lastEvent: instance.lastEvent }, 'getInstanceInTime');
+
     return instance;
   }
 
@@ -169,30 +182,13 @@ export class EventSourcing {
     );
     instance.eventSourcing = this;
 
-    const applyEvents = () => {
-      const lastEventIdx = instance.lastEvent
-        ? this.events.findIndex(
-            (event) =>
-              event.createdAt.getTime() === instance.lastEvent?.getTime(),
-          )
-        : -1;
-
-      const eventsToApply = this.events
-        .slice(lastEventIdx + 1)
-        .filter(
-          (event) =>
-            event.createdAt.getTime() <=
-            (parent.lastEvent ?? new Date(0)).getTime(),
-        );
-
-      eventsToApply.forEach((event) => {
-        instance.lastEvent = event.createdAt;
-        instance.applyEvent(event);
-      });
-    };
+    this.logger.trace(
+      { lastEvent: parent.lastEvent },
+      'getInstanceInTimeFromName',
+    );
 
     return new Proxy(instance, {
-      get(target, prop) {
+      get: (target, prop) => {
         if (
           typeof prop === 'string' &&
           (prop === 'id' || prop === 'kind' || prop.endsWith('Id'))
@@ -201,9 +197,16 @@ export class EventSourcing {
           return target[prop as keyof typeof target];
         }
 
-        applyEvents();
+        this.logger.trace(
+          { lastEvent: parent.lastEvent },
+          'getInstanceInTimeFromName - get',
+        );
 
-        return target[prop as keyof typeof target];
+        return this.getInstanceInTime(
+          parent.lastEvent ?? new Date(0),
+          this.models[model] as new (...ids: any) => Model,
+          ...ids,
+        )[prop as keyof typeof target];
       },
     }) as InstanceType<RegisteredModels[TModel]>;
   }
@@ -223,6 +226,8 @@ export class EventSourcing {
 
   subscribe(onEvent: (event: SourcingEvent) => void) {
     this.subscribers.push(onEvent);
+
+    this.logger.trace({}, 'subscribe');
 
     return () => {
       const idx = this.subscribers.indexOf(onEvent);
