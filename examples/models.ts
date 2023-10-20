@@ -3,7 +3,7 @@ import { Model, SourcingEvent, applyEvent } from '../src';
 export class Entity extends Model {
   kind = 'Entity' as const;
 
-  @applyEvent('createEntity', 'name')
+  @applyEvent('createEntity', 'name', matchesId)
   @applyEvent('updateEntity', 'name')
   name = '';
 
@@ -23,7 +23,7 @@ export class Entity extends Model {
 export class OtherEntity extends Model {
   kind = 'OtherEntity' as const;
 
-  @applyEvent('addOtherEntity', 'name')
+  @applyEvent('addOtherEntity', 'name', matchesId)
   @applyEvent('updateOtherEntity', 'name')
   name = '';
 
@@ -38,6 +38,10 @@ export class OtherEntity extends Model {
       this.parent = this.getInstance('Entity', event.payload.parent);
     }
   }
+}
+
+function matchesId(this: OtherEntity, e: { payload: { id: string } }) {
+  return e.payload.id === this.id;
 }
 
 declare module '../src' {

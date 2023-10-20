@@ -34,7 +34,7 @@ export function applyEvent<
   accessor: TEvent extends { payload: infer TPayload }
     ? keyof TPayload | ((payload: TPayload) => any)
     : never,
-  condition?: (event: TEvent & SourcingEvent) => boolean,
+  condition?: (event: Extract<SourcingEvent, { type: TEventType }>) => boolean,
 ) {
   return (target: any, context?: ClassFieldDecoratorContext) => {
     if (!(target instanceof Model)) {
@@ -46,7 +46,11 @@ export function applyEvent<
       let handled = false;
       if (
         event.type === eventType &&
-        (!condition || condition.call(this, event as TEvent & SourcingEvent))
+        (!condition ||
+          condition.call(
+            this,
+            event as Extract<SourcingEvent, { type: TEventType }>,
+          ))
       ) {
         const payload = event.payload;
 
