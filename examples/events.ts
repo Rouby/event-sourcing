@@ -32,10 +32,22 @@ export function addOtherEntity(id: string, parent: string, name: string) {
   };
 }
 
+export function updateOtherEntity(id: string, name: string) {
+  return {
+    type: 'updateOtherEntity' as const,
+    version: 1,
+    payload: {
+      id,
+      name,
+    },
+  };
+}
+
 declare module '../src' {
   interface RegisterEvents {
     createEntity: ReturnType<typeof createEntity>;
     updateEntity: ReturnType<typeof updateEntity>;
     addOtherEntity: ReturnType<typeof addOtherEntity>;
+    updateOtherEntity: ReturnType<typeof updateOtherEntity>;
   }
 }

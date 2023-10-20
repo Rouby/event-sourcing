@@ -158,7 +158,7 @@ export class EventSourcing {
     ) => any
       ? TArgs
       : never,
-  >(tillTime: Date, model: TModel, ...ids: TIds) {
+  >(parent: { lastEvent?: Date }, model: TModel, ...ids: TIds) {
     const instance = new (this.models[model] as new (...ids: any) => Model)(
       ...ids,
     );
@@ -175,7 +175,11 @@ export class EventSourcing {
 
       const eventsToApply = this.events
         .slice(lastEventIdx + 1)
-        .filter((event) => event.createdAt.getTime() <= tillTime.getTime());
+        .filter(
+          (event) =>
+            event.createdAt.getTime() <=
+            (parent.lastEvent ?? new Date(0)).getTime(),
+        );
 
       eventsToApply.forEach((event) => {
         instance.applyEvent(event);

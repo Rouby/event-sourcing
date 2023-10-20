@@ -24,6 +24,7 @@ export class OtherEntity extends Model {
   kind = 'OtherEntity' as const;
 
   @applyEvent('addOtherEntity', 'name')
+  @applyEvent('updateOtherEntity', 'name')
   name = '';
 
   parent?: Entity;

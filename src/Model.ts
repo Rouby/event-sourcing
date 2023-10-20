@@ -19,7 +19,7 @@ export abstract class Model {
       : never,
   >(model: TModel, ...ids: TIds) {
     return this.eventSourcing.getInstanceInTimeFromName<TModel, TIds>(
-      this.lastEvent ?? new Date(0),
+      this,
       model,
       ...ids,
     );
