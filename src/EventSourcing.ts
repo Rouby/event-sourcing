@@ -164,7 +164,6 @@ export class EventSourcing {
     );
     instance.eventSourcing = this;
 
-    let hasAppliedEvents = false;
     const applyEvents = () => {
       const lastEventIdx = instance.lastEvent
         ? this.events.findIndex(
@@ -185,8 +184,6 @@ export class EventSourcing {
         instance.applyEvent(event);
         instance.lastEvent = event.createdAt;
       });
-
-      hasAppliedEvents = true;
     };
 
     return new Proxy(instance, {
@@ -199,9 +196,7 @@ export class EventSourcing {
           return target[prop as keyof typeof target];
         }
 
-        if (!hasAppliedEvents) {
-          applyEvents();
-        }
+        applyEvents();
 
         return target[prop as keyof typeof target];
       },
