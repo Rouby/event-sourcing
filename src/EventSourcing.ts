@@ -187,6 +187,14 @@ export class EventSourcing {
 
     return new Proxy(instance, {
       get(target, prop) {
+        if (
+          typeof prop === 'string' &&
+          (prop === 'id' || prop === 'kind' || prop.endsWith('Id'))
+        ) {
+          // ids are always present and never change!
+          return target[prop as keyof typeof target];
+        }
+
         if (!hasAppliedEvents) {
           applyEvents();
         }

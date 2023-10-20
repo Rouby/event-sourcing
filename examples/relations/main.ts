@@ -12,5 +12,6 @@ const instanceNow = source.getInstance(models.Entity, '1');
 await new Promise((resolve) => setTimeout(resolve, 10));
 await source.publishEvent({ event: updateEntity('Updated') });
 
+console.log('instance', instanceNow.others[0].id); // a
 console.log('instance', instanceNow.others[0].name); // Another
 console.log('instance', instanceNow.others[0].parent?.name); // New Entity, later events should not factor in
