@@ -1,8 +1,9 @@
 import { EventSourcing } from '../../src';
-import { createEntity, updateEntity } from './events';
-import { Entity } from './models';
+import { createEntity, updateEntity } from '../events';
+import * as models from '../models';
 
 const source = new EventSourcing({
+  models,
   plugins: [
     {
       initialize({ addEvent }) {
@@ -20,9 +21,9 @@ const source = new EventSourcing({
   ],
 });
 
-await source.publishEvent({ event: createEntity() });
+await source.publishEvent({ event: createEntity('1') });
 
-const instance = source.getInstance(Entity, '1');
+const instance = source.getInstance(models.Entity, '1');
 source.subscribeInstance(instance, () => {
   console.log('instance-update-received', instance.name);
 });

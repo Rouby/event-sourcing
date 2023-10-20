@@ -1,15 +1,20 @@
 import cuid from 'cuid';
 import { Model } from './Model.js';
 import { Plugin } from './plugins/index.js';
-import { RegisteredEvent, SourcingEvent } from './types.js';
+import { RegisteredEvent, RegisteredModels, SourcingEvent } from './types.js';
 
 export class EventSourcing {
   public readonly events: SourcingEvent[] = [];
   private readonly subscribers: ((event: SourcingEvent) => void)[] = [];
+  private readonly models: RegisteredModels;
   private readonly plugins: Plugin<SourcingEvent>[];
 
-  constructor(options?: { plugins?: Plugin<SourcingEvent>[] }) {
-    this.plugins = options?.plugins || [];
+  constructor(options: {
+    models: RegisteredModels;
+    plugins?: Plugin<SourcingEvent>[];
+  }) {
+    this.models = options.models;
+    this.plugins = options.plugins ?? [];
     for (const plugin of this.plugins) {
       if (plugin.initialize) {
         plugin.initialize({
@@ -100,6 +105,7 @@ export class EventSourcing {
     ...ids: TIds
   ) {
     const instance = new model(...ids);
+    instance.eventSourcing = this;
 
     const lastEventIdx = instance.lastEvent
       ? this.events.findIndex(
@@ -124,6 +130,7 @@ export class EventSourcing {
     ...ids: TIds
   ) {
     const instance = new model(...ids);
+    instance.eventSourcing = this;
 
     const lastEventIdx = instance.lastEvent
       ? this.events.findIndex(
@@ -142,6 +149,51 @@ export class EventSourcing {
     });
 
     return instance;
+  }
+
+  getInstanceInTimeFromName<
+    TModel extends keyof RegisteredModels,
+    TIds extends RegisteredModels[TModel] extends new (
+      ...args: infer TArgs
+    ) => any
+      ? TArgs
+      : never,
+  >(tillTime: Date, model: TModel, ...ids: TIds) {
+    const instance = new (this.models[model] as new (...ids: any) => Model)(
+      ...ids,
+    );
+    instance.eventSourcing = this;
+
+    let hasAppliedEvents = false;
+    const applyEvents = () => {
+      const lastEventIdx = instance.lastEvent
+        ? this.events.findIndex(
+            (event) =>
+              event.createdAt.getTime() === instance.lastEvent?.getTime(),
+          )
+        : -1;
+
+      const eventsToApply = this.events
+        .slice(lastEventIdx + 1)
+        .filter((event) => event.createdAt.getTime() <= tillTime.getTime());
+
+      eventsToApply.forEach((event) => {
+        instance.applyEvent(event);
+        instance.lastEvent = event.createdAt;
+      });
+
+      hasAppliedEvents = true;
+    };
+
+    return new Proxy(instance, {
+      get(target, prop) {
+        if (!hasAppliedEvents) {
+          applyEvents();
+        }
+
+        return target[prop as keyof typeof target];
+      },
+    }) as InstanceType<RegisteredModels[TModel]>;
   }
 
   subscribeInstance<TModel extends Model>(

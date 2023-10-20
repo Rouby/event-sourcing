@@ -1,12 +1,29 @@
-import { RegisterEvents, SourcingEvent } from './types.js';
+import type { EventSourcing } from './EventSourcing.js';
+import { RegisterEvents, RegisteredModels, SourcingEvent } from './types.js';
 
 export abstract class Model {
   abstract get kind(): string;
 
   lastEvent?: Date;
+  eventSourcing!: EventSourcing;
 
   /** @internal */
   applyEvent(event: SourcingEvent): boolean | void {}
+
+  getInstance<
+    TModel extends keyof RegisteredModels,
+    TIds extends RegisteredModels[TModel] extends new (
+      ...args: infer TArgs
+    ) => any
+      ? TArgs
+      : never,
+  >(model: TModel, ...ids: TIds) {
+    return this.eventSourcing.getInstanceInTimeFromName<TModel, TIds>(
+      this.lastEvent ?? new Date(0),
+      model,
+      ...ids,
+    );
+  }
 }
 
 export function applyEvent<
