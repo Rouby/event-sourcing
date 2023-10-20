@@ -1,7 +1,12 @@
 import cuid from 'cuid';
 import { Model } from './Model.js';
 import { Plugin } from './plugins/index.js';
-import { RegisteredEvent, RegisteredModels, SourcingEvent } from './types.js';
+import {
+  RegisterEvents,
+  RegisteredEvent,
+  RegisteredModels,
+  SourcingEvent,
+} from './types.js';
 
 export class EventSourcing {
   public readonly events: SourcingEvent[] = [];
@@ -226,5 +231,16 @@ export class EventSourcing {
         this.subscribers.splice(idx, 1);
       }
     };
+  }
+
+  promised(type: keyof RegisterEvents) {
+    return new Promise<SourcingEvent>((resolve) => {
+      const unsubscribe = this.subscribe((event) => {
+        if (event.type === type) {
+          unsubscribe();
+          resolve(event);
+        }
+      });
+    });
   }
 }
