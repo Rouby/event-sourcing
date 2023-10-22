@@ -8,6 +8,7 @@ export interface Plugin<TEvent extends SourcingEvent> {
       rehydrate: (
         events: SourcingEvent[],
         replacePreviousEvents?: boolean,
+        clearSubscribers?: boolean,
       ) => Promise<void>;
       addEvent: (event: SourcingEvent) => void;
     },
