@@ -9,7 +9,7 @@ export interface Plugin<TEvent extends SourcingEvent> {
     addEvent: (event: SourcingEvent) => void;
   }): void;
 
-  prepareEventBeforePublishing?(event: TEvent): Promise<TEvent>;
+  prepareEventBeforePublishing?(event: TEvent): Promise<TEvent | null>;
 
   publishEvent?(event: TEvent): Promise<void>;
 

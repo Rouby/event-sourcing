@@ -67,15 +67,12 @@ export class EventSourcing {
               if (plugin.beforeAddingEvent) {
                 eventOrAbort = await plugin.beforeAddingEvent(event);
                 if (eventOrAbort === null) {
-                  break;
+                  return;
                 }
               }
             }
 
-            if (
-              eventOrAbort &&
-              !this.events.some((evt) => evt.id === eventOrAbort?.id)
-            ) {
+            if (!this.events.some((evt) => evt.id === eventOrAbort?.id)) {
               const event = eventOrAbort;
 
               this.logger.trace({ event }, 'addEvent');
@@ -110,7 +107,7 @@ export class EventSourcing {
     }
 
     const eventId = cuid();
-    let sourcingEvent: SourcingEvent = {
+    let sourcingEvent: SourcingEvent | null = {
       id: eventId,
       causationId: trigger?.id ?? eventId,
       correlationId: trigger?.correlationId ?? eventId,
@@ -123,19 +120,26 @@ export class EventSourcing {
         sourcingEvent = await plugin.prepareEventBeforePublishing(
           sourcingEvent,
         );
+        if (sourcingEvent === null) {
+          this.logger.trace({ event }, 'publishEvent - ignored by plugin');
+          return;
+        }
       }
     }
 
-    this.logger.trace({ event: sourcingEvent }, 'publishEvent');
+    {
+      const event = sourcingEvent;
+      this.logger.trace({ event }, 'publishEvent');
 
-    this.events.push(sourcingEvent);
-    this.subscribers.forEach((subscriber) =>
-      subscriber(sourcingEvent, this.rehydrating),
-    );
+      this.events.push(event);
+      this.subscribers.forEach((subscriber) =>
+        subscriber(event, this.rehydrating),
+      );
 
-    for (const plugin of this.plugins) {
-      if (plugin.publishEvent) {
-        await plugin.publishEvent(sourcingEvent);
+      for (const plugin of this.plugins) {
+        if (plugin.publishEvent) {
+          await plugin.publishEvent(event);
+        }
       }
     }
   }
