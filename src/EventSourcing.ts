@@ -36,7 +36,11 @@ export class EventSourcing {
     for (const plugin of this.plugins) {
       if (plugin.initialize) {
         plugin.initialize.call(this, {
-          rehydrate: async (events, replacePreviousEvents = false) => {
+          rehydrate: async (
+            events,
+            replacePreviousEvents = false,
+            clearSubscribers = false,
+          ) => {
             const newEvents = [
               ...(replacePreviousEvents ? [] : this.events),
               ...events,
@@ -76,6 +80,10 @@ export class EventSourcing {
             }
 
             this.logger.trace({}, 'rehydrate');
+
+            if (clearSubscribers) {
+              this.subscribers.splice(0, this.subscribers.length);
+            }
 
             this.rehydrating = true;
             this.events.forEach((event) => {
