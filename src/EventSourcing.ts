@@ -35,7 +35,7 @@ export class EventSourcing {
     };
     for (const plugin of this.plugins) {
       if (plugin.initialize) {
-        plugin.initialize({
+        plugin.initialize.call(this, {
           rehydrate: (events, replacePreviousEvents = false) => {
             this.events.splice(
               0,
@@ -49,7 +49,7 @@ export class EventSourcing {
             );
             for (const plugin of this.plugins) {
               if (plugin.afterRehydration) {
-                plugin.afterRehydration(this.events);
+                plugin.afterRehydration.call(this, this.events);
               }
             }
             this.logger.trace({}, 'rehydrate');
@@ -65,7 +65,7 @@ export class EventSourcing {
             let eventOrAbort: typeof event | null = event;
             for (const plugin of this.plugins) {
               if (plugin.beforeAddingEvent) {
-                eventOrAbort = await plugin.beforeAddingEvent(event);
+                eventOrAbort = await plugin.beforeAddingEvent.call(this, event);
                 if (eventOrAbort === null) {
                   return;
                 }
@@ -84,7 +84,7 @@ export class EventSourcing {
 
               for (const plugin of this.plugins) {
                 if (plugin.afterAddingEvent) {
-                  plugin.afterAddingEvent(event);
+                  plugin.afterAddingEvent.call(this, event);
                 }
               }
             }
@@ -117,7 +117,8 @@ export class EventSourcing {
 
     for (const plugin of this.plugins) {
       if (plugin.prepareEventBeforePublishing) {
-        sourcingEvent = await plugin.prepareEventBeforePublishing(
+        sourcingEvent = await plugin.prepareEventBeforePublishing.call(
+          this,
           sourcingEvent,
         );
         if (sourcingEvent === null) {
@@ -138,7 +139,7 @@ export class EventSourcing {
 
       for (const plugin of this.plugins) {
         if (plugin.publishEvent) {
-          await plugin.publishEvent(event);
+          await plugin.publishEvent.call(this, event);
         }
       }
     }
