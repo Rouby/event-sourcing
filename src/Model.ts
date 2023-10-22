@@ -17,7 +17,7 @@ export abstract class Model {
     ) => any
       ? TArgs
       : never,
-  >(model: TModel, ...ids: TIds) {
+  >(model: TModel, ...ids: TIds): InstanceType<RegisteredModels[TModel]> {
     return this.eventSourcing.getInstanceInTimeFromName<TModel, TIds>(
       this,
       model,
