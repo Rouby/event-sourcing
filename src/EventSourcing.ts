@@ -157,8 +157,8 @@ export class EventSourcing {
     const eventsToApply = this.events.slice(lastEventIdx + 1);
 
     eventsToApply.forEach((event) => {
-      instance.lastEvent = event.createdAt;
       instance.applyEvent(event);
+      instance.lastEvent = event.createdAt;
     });
 
     this.logger.trace({ lastEvent: instance.lastEvent }, 'getInstance');
@@ -186,8 +186,8 @@ export class EventSourcing {
       .filter((event) => event.createdAt.getTime() <= tillTime.getTime());
 
     eventsToApply.forEach((event) => {
-      instance.lastEvent = event.createdAt;
       instance.applyEvent(event);
+      instance.lastEvent = event.createdAt;
     });
 
     this.logger.trace(
@@ -241,8 +241,8 @@ export class EventSourcing {
     this.logger.trace({}, 'subscribeInstance');
 
     return this.subscribe((event: SourcingEvent, rehydrating) => {
-      instance.lastEvent = event.createdAt;
       instance.applyEvent(event);
+      instance.lastEvent = event.createdAt;
       onUpdate(event, rehydrating);
     });
   }
