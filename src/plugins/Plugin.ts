@@ -2,7 +2,10 @@ import { SourcingEvent } from '../types.js';
 
 export interface Plugin<TEvent extends SourcingEvent> {
   initialize?(es: {
-    rehydrate: (events: SourcingEvent[]) => void;
+    rehydrate: (
+      events: SourcingEvent[],
+      replacePreviousEvents?: boolean,
+    ) => void;
     addEvent: (event: SourcingEvent) => void;
   }): void;
 
