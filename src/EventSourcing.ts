@@ -10,7 +10,10 @@ import {
 
 export class EventSourcing {
   public readonly events: SourcingEvent[] = [];
-  private readonly subscribers: ((event: SourcingEvent) => void)[] = [];
+  private readonly subscribers: ((
+    event: SourcingEvent,
+    rehydrating: boolean,
+  ) => void)[] = [];
   private readonly models: RegisteredModels;
   private readonly plugins: Plugin<SourcingEvent>[];
   private readonly logger: {
@@ -52,7 +55,9 @@ export class EventSourcing {
             this.logger.trace({}, 'rehydrate');
             this.rehydrating = true;
             this.events.forEach((event) => {
-              this.subscribers.forEach((subscriber) => subscriber(event));
+              this.subscribers.forEach((subscriber) =>
+                subscriber(event, this.rehydrating),
+              );
             });
             this.rehydrating = false;
           },
@@ -76,7 +81,9 @@ export class EventSourcing {
               this.logger.trace({ event }, 'addEvent');
 
               this.events.push(event);
-              this.subscribers.forEach((subscriber) => subscriber(event));
+              this.subscribers.forEach((subscriber) =>
+                subscriber(event, this.rehydrating),
+              );
 
               for (const plugin of this.plugins) {
                 if (plugin.afterAddingEvent) {
@@ -122,7 +129,9 @@ export class EventSourcing {
     this.logger.trace({ event: sourcingEvent }, 'publishEvent');
 
     this.events.push(sourcingEvent);
-    this.subscribers.forEach((subscriber) => subscriber(sourcingEvent));
+    this.subscribers.forEach((subscriber) =>
+      subscriber(sourcingEvent, this.rehydrating),
+    );
 
     for (const plugin of this.plugins) {
       if (plugin.publishEvent) {
@@ -227,18 +236,18 @@ export class EventSourcing {
 
   subscribeInstance<TModel extends Model>(
     instance: TModel,
-    onUpdate: (event: SourcingEvent) => void,
+    onUpdate: (event: SourcingEvent, rehydrating: boolean) => void,
   ) {
     this.logger.trace({}, 'subscribeInstance');
 
-    return this.subscribe((event: SourcingEvent) => {
+    return this.subscribe((event: SourcingEvent, rehydrating) => {
       instance.lastEvent = event.createdAt;
       instance.applyEvent(event);
-      onUpdate(event);
+      onUpdate(event, rehydrating);
     });
   }
 
-  subscribe(onEvent: (event: SourcingEvent) => void) {
+  subscribe(onEvent: (event: SourcingEvent, rehydrating: boolean) => void) {
     this.subscribers.push(onEvent);
 
     this.logger.trace({}, 'subscribe');
