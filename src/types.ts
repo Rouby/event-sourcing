@@ -10,12 +10,10 @@ export type RegisteredEvent = RegisterEvents[keyof RegisterEvents] extends never
   ? { type: string; payload: any }
   : RegisterEvents[keyof RegisterEvents];
 
-export type RegisteredModels = RegisterModels extends Record<
-  string,
-  new (...args: any[]) => any
->
-  ? {}
-  : { [P in keyof RegisterModels]: RegisterModels[P] };
+export type RegisteredModels =
+  RegisterModels[keyof RegisterModels] extends never
+    ? {}
+    : { [P in keyof RegisterModels]: RegisterModels[P] };
 
 export interface AdditionalEventProps {}
 
