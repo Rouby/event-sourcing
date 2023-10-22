@@ -36,23 +36,47 @@ export class EventSourcing {
     for (const plugin of this.plugins) {
       if (plugin.initialize) {
         plugin.initialize.call(this, {
-          rehydrate: (events, replacePreviousEvents = false) => {
-            this.events.splice(
-              0,
-              this.events.length,
-              ...[...(replacePreviousEvents ? [] : this.events), ...events]
-                .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-                .filter(
-                  (event, idx, events) =>
-                    events.findIndex((e) => e.id === event.id) === idx,
-                ),
+          rehydrate: async (events, replacePreviousEvents = false) => {
+            const newEvents = [
+              ...(replacePreviousEvents ? [] : this.events),
+              ...events,
+            ]
+              .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+              .filter(
+                (event, idx, events) =>
+                  events.findIndex((e) => e.id === event.id) === idx,
+              );
+
+            const eventsToAdd = await Promise.all(
+              newEvents.map(async (event) => {
+                let eventOrAbort: typeof event | null = event;
+                for (const plugin of this.plugins) {
+                  if (plugin.beforeAddingEvent) {
+                    eventOrAbort = await plugin.beforeAddingEvent.call(
+                      this,
+                      eventOrAbort,
+                    );
+                    if (eventOrAbort === null) {
+                      return null;
+                    }
+                  }
+                }
+                return eventOrAbort;
+              }),
+            ).then((events) =>
+              events.filter(<T>(event: T | null): event is T => event !== null),
             );
+
+            this.events.splice(0, this.events.length, ...eventsToAdd);
+
             for (const plugin of this.plugins) {
               if (plugin.afterRehydration) {
                 plugin.afterRehydration.call(this, this.events);
               }
             }
+
             this.logger.trace({}, 'rehydrate');
+
             this.rehydrating = true;
             this.events.forEach((event) => {
               this.subscribers.forEach((subscriber) =>
