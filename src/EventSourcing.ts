@@ -73,6 +73,10 @@ export class EventSourcing {
 
             this.events.splice(0, this.events.length, ...eventsToAdd);
 
+            if (clearSubscribers) {
+              this.subscribers.splice(0, this.subscribers.length);
+            }
+
             for (const plugin of this.plugins) {
               if (plugin.afterRehydration) {
                 plugin.afterRehydration.call(this, this.events);
@@ -80,10 +84,6 @@ export class EventSourcing {
             }
 
             this.logger.trace({}, 'rehydrate');
-
-            if (clearSubscribers) {
-              this.subscribers.splice(0, this.subscribers.length);
-            }
 
             this.rehydrating = true;
             this.events.forEach((event) => {
