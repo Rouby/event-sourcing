@@ -16,6 +16,7 @@ export class EventSourcing {
   private readonly logger: {
     trace: (...args: any[]) => void;
   };
+  private rehydrating = false;
 
   constructor(options: {
     models: RegisteredModels;
@@ -32,13 +33,16 @@ export class EventSourcing {
     for (const plugin of this.plugins) {
       if (plugin.initialize) {
         plugin.initialize({
-          rehydrate: (events) => {
+          rehydrate: (events, replacePreviousEvents = false) => {
             this.events.splice(
               0,
               this.events.length,
-              ...[...this.events, ...events]
-                .filter((event) => !this.events.find((e) => e.id === event.id))
-                .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+              ...[...(replacePreviousEvents ? [] : this.events), ...events]
+                .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+                .filter(
+                  (event, idx, events) =>
+                    events.findIndex((e) => e.id === event.id) === idx,
+                ),
             );
             for (const plugin of this.plugins) {
               if (plugin.afterRehydration) {
@@ -46,9 +50,11 @@ export class EventSourcing {
               }
             }
             this.logger.trace({}, 'rehydrate');
+            this.rehydrating = true;
             this.events.forEach((event) => {
               this.subscribers.forEach((subscriber) => subscriber(event));
             });
+            this.rehydrating = false;
           },
           addEvent: async (event) => {
             let eventOrAbort: typeof event | null = event;
@@ -91,6 +97,11 @@ export class EventSourcing {
     event: TEvent;
     trigger?: { id: string; correlationId: string };
   }): Promise<void> {
+    if (this.rehydrating) {
+      this.logger.trace({ event }, 'publishEvent - ignored while rehydrating');
+      return;
+    }
+
     const eventId = cuid();
     let sourcingEvent: SourcingEvent = {
       id: eventId,
