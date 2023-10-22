@@ -51,25 +51,22 @@ export class EventSourcing {
                   events.findIndex((e) => e.id === event.id) === idx,
               );
 
-            const eventsToAdd = await Promise.all(
-              newEvents.map(async (event) => {
-                let eventOrAbort: typeof event | null = event;
-                for (const plugin of this.plugins) {
-                  if (plugin.beforeAddingEvent) {
-                    eventOrAbort = await plugin.beforeAddingEvent.call(
-                      this,
-                      eventOrAbort,
-                    );
-                    if (eventOrAbort === null) {
-                      return null;
-                    }
+            const eventsToAdd: SourcingEvent[] = [];
+            eventLoop: for (const event of newEvents) {
+              let eventOrAbort: typeof event | null = event;
+              for (const plugin of this.plugins) {
+                if (plugin.beforeAddingEvent) {
+                  eventOrAbort = await plugin.beforeAddingEvent.call(
+                    this,
+                    eventOrAbort,
+                  );
+                  if (eventOrAbort === null) {
+                    continue eventLoop;
                   }
                 }
-                return eventOrAbort;
-              }),
-            ).then((events) =>
-              events.filter(<T>(event: T | null): event is T => event !== null),
-            );
+              }
+              eventsToAdd.push(eventOrAbort);
+            }
 
             this.events.splice(0, this.events.length, ...eventsToAdd);
 
@@ -79,7 +76,7 @@ export class EventSourcing {
 
             for (const plugin of this.plugins) {
               if (plugin.afterRehydration) {
-                plugin.afterRehydration.call(this, this.events);
+                await plugin.afterRehydration.call(this, this.events);
               }
             }
 
