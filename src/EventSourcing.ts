@@ -107,6 +107,9 @@ export class EventSourcing {
               this.logger.trace({ event }, 'addEvent');
 
               this.events.push(event);
+              this.events.sort(
+                (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+              );
               this.subscribers.forEach((subscriber) =>
                 subscriber(event, this.rehydrating),
               );
@@ -162,6 +165,7 @@ export class EventSourcing {
       this.logger.trace({ event }, 'publishEvent');
 
       this.events.push(event);
+      this.events.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       this.subscribers.forEach((subscriber) =>
         subscriber(event, this.rehydrating),
       );
