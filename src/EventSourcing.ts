@@ -166,7 +166,7 @@ export class EventSourcing {
       const event = sourcingEvent;
       this.logger.trace({ event }, 'publishEvent');
 
-      this.events.push(event);
+      this.insertEvent(event);
 
       for (const plugin of this.plugins) {
         if (plugin.publishEvent) {
