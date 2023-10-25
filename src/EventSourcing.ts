@@ -23,18 +23,7 @@ export class EventSourcing {
 
   private insertEvent(event: SourcingEvent) {
     this.events.push(event);
-    this.events.sort((a, b) => {
-      const aTime = a.createdAt.getTime();
-      const bTime = b.createdAt.getTime();
-      if (aTime < bTime) {
-        return -1;
-      }
-      if (aTime > bTime) {
-        return 1;
-      }
-      // tie breaker
-      return a.id < b.id ? -1 : 1;
-    });
+    this.events.sort(sortByTime);
     this.subscribers.forEach((subscriber) =>
       subscriber(event, this.rehydrating),
     );
@@ -64,7 +53,7 @@ export class EventSourcing {
               ...(replacePreviousEvents ? [] : this.events),
               ...events,
             ]
-              .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+              .sort(sortByTime)
               .filter(
                 (event, idx, events) =>
                   events.findIndex((e) => e.id === event.id) === idx,
@@ -317,4 +306,17 @@ export class EventSourcing {
       });
     });
   }
+}
+
+function sortByTime(a: SourcingEvent, b: SourcingEvent) {
+  const aTime = a.createdAt.getTime();
+  const bTime = b.createdAt.getTime();
+  if (aTime < bTime) {
+    return -1;
+  }
+  if (aTime > bTime) {
+    return 1;
+  }
+  // tie breaker
+  return a.id < b.id ? -1 : 1;
 }
