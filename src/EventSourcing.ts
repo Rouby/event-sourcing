@@ -193,6 +193,11 @@ export class EventSourcing {
     const eventsToApply = this.events.slice(lastEventIdx + 1);
 
     eventsToApply.forEach((event) => {
+      for (const plugin of this.plugins) {
+        if (plugin.beforeApplyingEvent) {
+          event = plugin.beforeApplyingEvent.call(this, event);
+        }
+      }
       instance.applyEvent(event);
       instance.lastEvent = event.createdAt;
     });
@@ -222,6 +227,11 @@ export class EventSourcing {
       .filter((event) => event.createdAt.getTime() <= tillTime.getTime());
 
     eventsToApply.forEach((event) => {
+      for (const plugin of this.plugins) {
+        if (plugin.beforeApplyingEvent) {
+          event = plugin.beforeApplyingEvent.call(this, event);
+        }
+      }
       instance.applyEvent(event);
       instance.lastEvent = event.createdAt;
     });
@@ -277,6 +287,11 @@ export class EventSourcing {
     this.logger.trace({}, 'subscribeInstance');
 
     return this.subscribe((event: SourcingEvent, rehydrating) => {
+      for (const plugin of this.plugins) {
+        if (plugin.beforeApplyingEvent) {
+          event = plugin.beforeApplyingEvent.call(this, event);
+        }
+      }
       instance.applyEvent(event);
       instance.lastEvent = event.createdAt;
       onUpdate(event, rehydrating);

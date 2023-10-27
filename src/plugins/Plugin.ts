@@ -32,4 +32,6 @@ export interface Plugin<TEvent extends SourcingEvent> {
     this: EventSourcing,
     events: SourcingEvent[],
   ): Promise<void>;
+
+  beforeApplyingEvent?(this: EventSourcing, event: TEvent): TEvent;
 }
