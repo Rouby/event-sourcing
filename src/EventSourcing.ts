@@ -59,7 +59,8 @@ export class EventSourcing {
                   events.findIndex((e) => e.id === event.id) === idx,
               );
 
-            const eventsToAdd: SourcingEvent[] = [];
+            this.events.splice(0, this.events.length);
+
             eventLoop: for (const event of newEvents) {
               let eventOrAbort: typeof event | null = event;
               for (const plugin of this.plugins) {
@@ -73,10 +74,8 @@ export class EventSourcing {
                   }
                 }
               }
-              eventsToAdd.push(eventOrAbort);
+              this.events.push(eventOrAbort);
             }
-
-            this.events.splice(0, this.events.length, ...eventsToAdd);
 
             if (clearSubscribers) {
               this.subscribers.splice(0, this.subscribers.length);
