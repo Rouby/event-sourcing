@@ -16,5 +16,14 @@
   "scripts": {
     "test": "echo \"noop\"",
     "build": "bun tsc -p tsconfig.build.json --outdir dist --noEmit false --declaration"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rouby/event-sourcing"
+  },
+  "author": "Jonathan Burke",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Rouby/event-sourcing/issues"
   }
 }
