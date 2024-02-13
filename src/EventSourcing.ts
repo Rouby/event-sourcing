@@ -206,6 +206,46 @@ export class EventSourcing {
     return instance;
   }
 
+  getInstanceAtEvent<TModel extends Model, TIds extends any[]>(
+    event: SourcingEvent,
+    model: new (...ids: TIds) => TModel,
+    ...ids: TIds
+  ) {
+    const instance = new model(...ids);
+    instance.eventSourcing = this;
+
+    const lastEventIdx = instance.lastEvent
+      ? this.events.findIndex(
+          (event) =>
+            event.createdAt.getTime() === instance.lastEvent?.getTime(),
+        )
+      : -1;
+
+    const targetEventIdx = this.events.findIndex((e) => e.id === event.id);
+
+    const eventsToApply = this.events.slice(lastEventIdx + 1, targetEventIdx);
+
+    eventsToApply.forEach((event) => {
+      for (const plugin of this.plugins) {
+        if (plugin.beforeApplyingEvent) {
+          event = plugin.beforeApplyingEvent.call(this, event);
+        }
+      }
+      instance.applyEvent(event);
+      instance.lastEvent = event.createdAt;
+    });
+
+    this.logger.trace(
+      { event, lastEvent: instance.lastEvent },
+      'getInstanceInTime',
+    );
+
+    return instance;
+  }
+
+  /**
+   * @deprecated use getInstanceBeforeEvent instead
+   */
   getInstanceInTime<TModel extends Model, TIds extends any[]>(
     tillTime: Date,
     model: new (...ids: TIds) => TModel,
