@@ -86,8 +86,6 @@ console.log('instance', source.getInstance(models.Entity, '1').name); //? New En
 
 For basic examples on how to use this library see the [examples](./examples) directory.
 
-You can define your own event sourcing models by extending the `Model` class and implementing the `applyEvent` method or utilizing the `@applyEvent` decorator.
-
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
