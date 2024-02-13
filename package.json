@@ -25,5 +25,12 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Rouby/event-sourcing/issues"
-  }
+  },
+  "keywords": [
+    "event",
+    "sourcing",
+    "event-sourcing",
+    "cqrs",
+    "ddd"
+  ]
 }
