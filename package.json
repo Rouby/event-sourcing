@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rouby/event-sourcing"
+    "url": "https://github.com/Rouby/event-sourcing.git"
   },
   "author": "Jonathan Burke",
   "license": "MIT",
